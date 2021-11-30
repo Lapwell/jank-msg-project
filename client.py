@@ -21,6 +21,7 @@ DC_msg = "!DC"
 CC_msg = "!CC"                               # This is used in checkconn(), it means check connection... i forgot what it meant already and i doubt we want to again
 client = s.socket(s.AF_INET, s.SOCK_STREAM)  # This sets the socket to Ipv4 (AF_INET) and - I believe - UDP protocol
 user_list = []
+global name
 
 
 def send(packet):
@@ -59,7 +60,7 @@ def send_msg_btn():
     global run
     if user_input != DC_msg:
         send(entry_output.get())
-        chat_log.insert('end', user_input + '\n')
+        chat_log.insert('end', name + user_input + '\n')
         txt_entry.delete(0, 'end')
     else:
         run = False
