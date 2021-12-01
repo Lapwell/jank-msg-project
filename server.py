@@ -20,13 +20,15 @@ usr = ''
 # This function is to check if the client is till alive.
 def client_alive(conn, addr):
     s.setdefaulttimeout(1)
-    conn.send(CC_msg.encode(MSG_FORMAT))
-    try:
-        conn.recv(CHAR_LIMIT).decode(MSG_FORMAT)
-    except s.error:
-        usr_dic.pop(addr)
-        print(usr_dic)
-    s.setdefaulttimeout(None)
+    for c in usr_dic:
+        conn.sendto(CC_msg.encode(MSG_FORMAT), c)
+        try:
+            conn.recv(CHAR_LIMIT).decode(MSG_FORMAT)
+        except s.error as err:
+            print(f'\n[SYSTEM] Client_alive error: {err}\n')
+            usr_dic.pop(addr)
+            print(usr_dic)
+        s.setdefaulttimeout(None)
 
 
 # This function handles the client/server connections
@@ -63,7 +65,8 @@ def handle_client(conn, addr):
             # If the packet contains DC_msg or CC_msg dont print, if not, print it
             if packet != DC_msg and packet != CC_msg and packet != NU_msg:
                 print(f"{usr_dic[addr]}: {packet}")
-                client_alive(conn, addr)
+
+                #client_alive(conn, addr)
                 time.sleep(1)
 
     conn.close()

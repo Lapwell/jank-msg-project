@@ -64,9 +64,10 @@ def send_msg_btn():
     else:
         run = False
         send(entry_output.get())
-        time.sleep(4)
+        time.sleep(2)
         client.close()
         root.destroy()
+        sys.exit()
 
 
 # This is used to send the user's name to the server
@@ -76,6 +77,7 @@ def send_name():
     connected_usrs.insert(0, name)
     name = NU_msg + name
     send(name)
+    root.attributes('-topmost', True)
     name_root.destroy()
 
 
@@ -83,14 +85,29 @@ def send_name():
 This is where the GUI code will go ↓
 """""
 
+
+# This code is for centering the windows, makes it easier to look at.
+def center_window(win, width, height):
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+
+    # calculate position x and y coordinates
+    x = (screen_width / 2) - (width / 2)
+    y = (screen_height / 2) - (height / 2)
+    win.geometry('%dx%d+%d+%d' % (width, height, x, y))
+
+
 root = tk.Tk()
 root.geometry('664x632')
 root.title('Jank Message App V2.0')
+root.attributes('-top', False)
 root.resizable(False, False)
+
+center_window(root, 664, 632)
 
 # This is for when the program is first booted, it asks for users to input a name that all other users will be able to see
 name_root = tk.Toplevel()
-name_root.geometry('12x64')
+center_window(name_root, 100, 100)
 name_root.grab_set()
 name_root.attributes('-topmost', True)
 label = tk.Label(name_root, text='Input Username:')
