@@ -13,8 +13,20 @@ CC_msg = "!CC"                               # This is used in checkconn(), it m
 NU_msg = '!NEW_USR '
 server = s.socket(s.AF_INET, s.SOCK_STREAM)  # This sets the socket to Ipv4 (AF_INET) and, I believe, UDP protocol
 server.bind(ip_port)                         # Binds the socket to addr, making anything that hits port 9882 go to the socket. I think that's how it works
-user_dic = {'Test': "User"}
+usr_dic = {}
 usr = ''
+
+
+# This function is to check if the client is till alive.
+def client_alive(conn, addr):
+    s.setdefaulttimeout(1)
+    conn.send(CC_msg.encode(MSG_FORMAT))
+    try:
+        conn.recv(CHAR_LIMIT).decode(MSG_FORMAT)
+    except s.error:
+        usr_dic.pop(addr)
+        print(usr_dic)
+    s.setdefaulttimeout(None)
 
 
 # This function handles the client/server connections
@@ -29,29 +41,29 @@ def handle_client(conn, addr):
         packet_length = conn.recv(CHAR_LIMIT).decode(MSG_FORMAT)
         if packet_length:
             packet_length = len(packet_length)
-            packet_length = int(packet_length)
             packet = conn.recv(packet_length).decode(MSG_FORMAT)
 
+            # This is for adding new users to the usr_dic list (list of all known users)
             if NU_msg in packet:
                 print(f'\npacket = {packet}\n')
+                # This trims the packet of useless data so it fits better into the dictionary, the name is all this is left
                 usr = packet.replace(NU_msg, '')
-                user_dic[addr] = usr
-                print("[SYSTEM] New User Added:", f"{usr}", f"{addr}")
-                usr_name_data = user_dic.values()
-                print(usr_name_data)
+                usr_dic[addr] = usr
+                print(f"[SYSTEM] New User Added:{usr} {addr}")
+                print(usr_dic.values())
 
             # If the package is !DC, close the connection
             if DC_msg in packet:
                 connected = False
-                del user_dic[addr]
-                print(f"[SYSTEM] User [{user_dic[addr]}] Disconnected\n [ACTIVE CONNECTIONS] {threading.active_count() - 2}")
+                # This removes the user from the usr_dic
+                usr_dic.pop(addr)
+                print(usr_dic)
+                print(f"[SYSTEM] User [{usr}] Disconnected\n [ACTIVE CONNECTIONS] {threading.active_count() - 2}")
 
-            # If the packet contains !DC don't print, if not, print it
-            if packet != DC_msg:
-                print(f"{user_dic[addr]}: {packet}")
-                conn.send(CC_msg.encode(MSG_FORMAT))
-                test = 'msg rcvd'
-                conn.send(test.encode(MSG_FORMAT))
+            # If the packet contains DC_msg or CC_msg dont print, if not, print it
+            if packet != DC_msg and packet != CC_msg and packet != NU_msg:
+                print(f"{usr_dic[addr]}: {packet}")
+                client_alive(conn, addr)
                 time.sleep(1)
 
     conn.close()

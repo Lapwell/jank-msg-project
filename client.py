@@ -11,24 +11,24 @@ if ip == 'n':
     server_ip = '10.0.0.73'  # the server's  ipv4 address, i think we need to use 24.108.220.166 for over the internet
 
 
-char_limit = 512                             # The amount of bytes per msg allowed
+CHAR_LIMIT = 512                             # The amount of bytes per msg allowed
 port = 8823
 addr = (server_ip, port)                     # This is essentially: IP, PORT in one box for ease of use
-msg_format = 'UTF-8'                         # Used when encoding and decoding msgs
+MSG_FORMAT = 'UTF-8'                         # Used when encoding and decoding msgs
 run = True                                   # This was originally None, idk why it was but i changed it to True due to it being used in a while loop. I'm leaving this comment just in case, you're (possibly) welcome future me.
 NU_msg = '!NEW_USR '
 DC_msg = "!DC"
 CC_msg = "!CC"                               # This is used in checkconn(), it means check connection... i forgot what it meant already and i doubt we want to again
 client = s.socket(s.AF_INET, s.SOCK_STREAM)  # This sets the socket to Ipv4 (AF_INET) and - I believe - UDP protocol
 user_list = []
-global name
+name = ''
 
 
 def send(packet):
-    packet = packet.encode(msg_format)
+    packet = packet.encode(MSG_FORMAT)
     packet_length = len(packet)
-    send_length = str(packet_length).encode(msg_format)
-    send_length += b' ' * (char_limit - len(send_length))
+    send_length = str(packet_length).encode(MSG_FORMAT)
+    send_length += b' ' * (CHAR_LIMIT - len(send_length))
     client.send(send_length)
     client.send(packet)
 
@@ -37,26 +37,25 @@ def send(packet):
 def msg_recv():
     row = 1
     while run:
-        packet = client.recv(char_limit).decode(msg_format)
+        packet = client.recv(CHAR_LIMIT).decode(MSG_FORMAT)
         if NU_msg in packet:
             new_user = packet.replace(NU_msg, '')
             user_list.insert(row, new_user)
             row += 1
 
-        elif packet == CC_msg or packet == 'msg rcvd':
-            continue
+        elif packet == CC_msg:
+            send(CC_msg)
 
         else:
             chat_log.insert('end', packet + '\n')
-
-        test = 'msg rcvd'
-        if packet == test:
-            print(packet)
+            send(CC_msg)
+            time.sleep(1)
 
 
 # This is used to send msgs that the user inputs into the txt_entry method
 def send_msg_btn():
     user_input = entry_output.get()
+    global name
     global run
     if user_input != DC_msg:
         send(entry_output.get())
@@ -65,6 +64,7 @@ def send_msg_btn():
     else:
         run = False
         send(entry_output.get())
+        time.sleep(4)
         client.close()
         root.destroy()
 
